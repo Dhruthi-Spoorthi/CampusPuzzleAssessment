@@ -1,0 +1,69 @@
+{
+  "classes": [
+    {
+      "id": "CS101",
+      "students": 40,
+      "professor": "P1"
+    },
+    {
+      "id": "MATH101",
+      "students": 35,
+      "professor": "P2"
+    },
+    {
+      "id": "CS102",
+      "students": 30,
+      "professor": "P1"
+    },
+    {
+      "id": "HIST101",
+      "students": 20,
+      "professor": "P3"
+    },
+    {
+      "id": "PROG101",
+      "students": 45,
+      "professor": "P4"
+    },
+    {
+      "id": "DB101",
+      "students": 25,
+      "professor": "P5"
+    }
+  ],
+
+  "rooms": [
+    {
+      "id": "R101",
+      "capacity": 50
+    },
+    {
+      "id": "R102",
+      "capacity": 40
+    },
+    {
+      "id": "R103",
+      "capacity": 30
+    },
+    {
+      "id": "R104",
+      "capacity": 20
+    }
+  ],
+
+  "student_groups": {
+    "GroupA": [
+      "CS101",
+      "MATH101",
+      "PROG101"
+    ],
+    "GroupB": [
+      "CS102",
+      "DB101"
+    ],
+    "GroupC": [
+      "HIST101",
+      "MATH101"
+    ]
+  }
+}
