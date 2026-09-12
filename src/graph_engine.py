@@ -12,11 +12,7 @@ class ConflictGraph:
         self.classes = classes
         self.student_groups = student_groups
 
-        # Graph format:
-        # {
-        #     "CS101": {"MATH101", "PROG101"},
-        #     ...
-        # }
+        # Each class starts with an empty set of conflicts.
         self.graph = {
             course.class_id: set()
             for course in classes
@@ -27,14 +23,10 @@ class ConflictGraph:
 
     def build_graph(self):
         """
-        Build a conflict graph.
-
-        Two classes are connected when:
-        1. They have the same professor, or
-        2. They belong to the same student group.
+        Create the conflict graph for all classes.
         """
 
-        # Check professor conflicts
+        # Check for classes taught by the same professor.
         for i in range(len(self.classes)):
 
             course_a = self.classes[i]
@@ -43,18 +35,15 @@ class ConflictGraph:
 
                 course_b = self.classes[j]
 
-                # Same professor
                 if course_a.professor == course_b.professor:
-
                     self.graph[course_a.class_id].add(
                         course_b.class_id
                     )
-
                     self.graph[course_b.class_id].add(
                         course_a.class_id
                     )
 
-        # Check student-group conflicts
+        # Check classes that belong to the same student group.
         for group_courses in self.student_groups.values():
 
             for i in range(len(group_courses)):
@@ -65,12 +54,11 @@ class ConflictGraph:
 
                     class_b = group_courses[j]
 
-                    # Only add the edge if both classes exist
+                    # Make sure both classes are in the graph.
                     if (
                             class_a in self.graph
                             and class_b in self.graph
                     ):
-
                         self.graph[class_a].add(class_b)
                         self.graph[class_b].add(class_a)
 
@@ -78,18 +66,14 @@ class ConflictGraph:
 
     def welsh_powell(self):
         """
-        Apply the Welsh-Powell graph coloring algorithm.
-
-        Classes with more conflicts are processed first.
-        A class receives the lowest color that none of
-        its conflicting classes currently use.
+        Colour the conflict graph using Welsh-Powell.
         """
 
-        # Make sure the graph exists
+        # Build the graph first if it has not been built yet.
         if not any(self.graph.values()):
             self.build_graph()
 
-        # Sort classes by decreasing degree
+        # Classes with more conflicts are handled first.
         ordered_classes = sorted(
             self.graph,
             key=lambda class_id: len(self.graph[class_id]),
@@ -108,6 +92,8 @@ class ConflictGraph:
 
             color = 0
 
+            # Find the first colour that is not being used
+            # by any of this class's neighbours.
             while color in used_colors:
                 color += 1
 
@@ -117,7 +103,7 @@ class ConflictGraph:
 
     def assign_time_slots(self):
         """
-        Convert graph colors into actual time slots.
+        Turn the colours into actual time slots.
         """
 
         if not self.colors:
@@ -128,18 +114,16 @@ class ConflictGraph:
         for class_id, color in self.colors.items():
 
             if color < len(self.TIME_SLOTS):
-                self.time_slots[class_id] = (
-                    self.TIME_SLOTS[color]
-                )
+                self.time_slots[class_id] = self.TIME_SLOTS[color]
             else:
-                # More colors than available time slots
+                # There are more colours than available slots.
                 self.time_slots[class_id] = None
 
         return self.time_slots
 
     def get_conflicts(self):
         """
-        Return a readable list of all class conflicts.
+        Return each conflict as a pair of class IDs.
         """
 
         conflicts = []
@@ -148,9 +132,8 @@ class ConflictGraph:
 
             for other_id in self.graph[class_id]:
 
-                # Avoid reporting the same pair twice
+                # Each pair only needs to be added once.
                 if class_id < other_id:
-
                     conflicts.append(
                         (class_id, other_id)
                     )
@@ -159,13 +142,12 @@ class ConflictGraph:
 
     def get_conflict_report(self):
         """
-        Create a readable conflict report.
+        Create a simple list showing the class conflicts.
         """
 
         report = []
 
         for class_a, class_b in self.get_conflicts():
-
             report.append(
                 f"{class_a} conflicts with {class_b}"
             )

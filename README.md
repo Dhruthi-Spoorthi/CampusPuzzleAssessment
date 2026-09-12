@@ -10,44 +10,38 @@ PASTE-YOUR-GITHUB-REPOSITORY-LINK-HERE
 
 # 1. Project Overview
 
-This project solves a campus class scheduling problem using multiple
-algorithmic approaches.
+This project is a campus class scheduling system that uses different algorithms to create a valid timetable.
 
-The system assigns classes to available rooms and time slots while
-respecting room capacity, room availability, professor availability,
-and student group constraints.
+The system assigns classes to available rooms and time slots while making sure that the main scheduling rules are followed. These include room capacity, room availability, professor availability, and student group conflicts.
 
-The project implements four main algorithmic approaches:
+The project uses five main stages:
 
 1. Greedy Scheduling
-2. Conflict Graph with Welsh-Powell Coloring
-3. Dynamic Programming Room Optimization
-4. Backtracking Search
+2. Conflict Graph
+3. Welsh-Powell Coloring
+4. Dynamic Programming Room Optimization
+5. Backtracking
 
-The approaches are used to construct, improve, and validate a feasible
-class timetable.
+Each method has a different purpose. Together, they help create, improve, and check the final timetable.
 
 ---
 
 # 2. Scheduling Constraints
 
-The scheduler considers the following constraints:
+The scheduler follows these rules:
 
-- A class must be assigned to a room with sufficient capacity.
-- A room cannot contain two classes at the same time.
-- A professor cannot teach two classes at the same time.
-- Classes attended by the same student group cannot occur at the same
-  time.
-- Classes that cannot fit into any available room must be reported as
-  unscheduled.
-- The optimization stage aims to minimize wasted room capacity while
-  maintaining feasibility.
+* A room must have enough capacity for the class.
+* A room cannot be used for two classes at the same time.
+* A professor cannot teach two classes at the same time.
+* Students in the same group cannot have two classes at the same time.
+* Classes that cannot be placed in any suitable room are reported as unscheduled.
+* The optimization stage tries to reduce unused room capacity while keeping the schedule valid.
 
 ---
 
 # 3. Input Data
 
-The scheduling constraints are stored in:
+The scheduling data is stored in:
 
 ```text
 data/constraints.json
@@ -55,34 +49,34 @@ data/constraints.json
 
 The dataset contains:
 
-- 6 classes
-- 4 rooms
-- 3 student groups
-- 5 available time slots
+* 6 classes
+* 4 rooms
+* 3 student groups
+* 5 available time slots
 
 ## Classes
 
-| Class | Students | Professor |
-|---|---:|---|
-| CS101 | 40 | P1 |
-| MATH101 | 35 | P2 |
-| CS102 | 30 | P1 |
-| HIST101 | 20 | P3 |
-| PROG101 | 45 | P4 |
-| DB101 | 25 | P5 |
+| Class   | Students | Professor |
+| ------- | -------: | --------- |
+| CS101   |       40 | P1        |
+| MATH101 |       35 | P2        |
+| CS102   |       30 | P1        |
+| HIST101 |       20 | P3        |
+| PROG101 |       45 | P4        |
+| DB101   |       25 | P5        |
 
 ## Rooms
 
 | Room | Capacity |
-|---|---:|
-| R101 | 50 |
-| R102 | 40 |
-| R103 | 30 |
-| R104 | 20 |
+| ---- | -------: |
+| R101 |       50 |
+| R102 |       40 |
+| R103 |       30 |
+| R104 |       20 |
 
 ## Student Groups
 
-The input data contains three student groups:
+There are three student groups:
 
 ```text
 GroupA:
@@ -99,43 +93,32 @@ HIST101
 MATH101
 ```
 
-Classes belonging to the same student group cannot be scheduled at the
-same time.
+Classes belonging to the same student group cannot be scheduled at the same time.
 
 ---
 
 # 4. Stage 1 - Greedy Scheduling
 
-## Algorithm
+The Greedy Solver starts by sorting classes according to the number of students, from largest to smallest.
 
-The Greedy Solver sorts classes by student count in descending order.
+This is useful because larger classes usually have fewer room choices. Scheduling them first makes it less likely that a suitable room will already be taken by a smaller class.
 
-Larger classes are considered first because they generally have fewer
-available room choices than smaller classes.
+For every class, the solver checks:
 
-For each class, the algorithm checks:
+1. Available time slots
+2. Rooms in their original order
+3. Room capacity
+4. Room conflicts
+5. Professor conflicts
+6. Student group conflicts
 
-1. Time slots in order.
-2. Rooms in their original order.
-3. Room capacity.
-4. Room conflicts.
-5. Professor conflicts.
-6. Student group conflicts.
+The first combination that satisfies all the conditions is selected.
 
-The first feasible room and time-slot combination is selected.
+## Why Greedy?
 
-## Why Greedy Was Chosen
+Greedy gives the project a simple and fast baseline solution. Instead of checking every possible timetable, it makes the best immediate choice for each class.
 
-A greedy approach provides a fast baseline solution.
-
-It makes a locally feasible choice for each class rather than exploring
-all possible complete schedules.
-
-This makes it simple and efficient, but it does not guarantee the
-globally optimal room allocation.
-
-The Greedy Solver therefore provides a baseline against which the other
-approaches can be compared.
+The main limitation is that a locally good choice is not always the best choice for the complete timetable. Therefore, the Greedy Solver is mainly used as a baseline for comparison with the other methods.
 
 ---
 
@@ -143,39 +126,34 @@ approaches can be compared.
 
 The Conflict Graph represents each class as a vertex.
 
-An edge is created between two classes when they cannot occur at the same
-time.
+An edge is added between two classes when they cannot be held at the same time.
 
-Two classes are considered to conflict when:
+Two classes conflict when:
 
-- They have the same professor, or
-- They share a student group.
+* They have the same professor, or
+* They share a student group.
 
-For example, if two classes belong to the same student group, an edge is
-created between them because the students would otherwise be required
-to attend two classes simultaneously.
+For example, if two classes belong to the same student group, they need an edge between them because the students cannot attend both classes at once.
 
-The graph provides a mathematical representation of the time-slot
-constraints.
+This graph gives a clear way to represent the time-related constraints of the timetable.
 
 ---
 
 # 6. Stage 3 - Welsh-Powell Graph Coloring
 
-Welsh-Powell graph coloring is applied to the conflict graph.
+The Welsh-Powell algorithm is applied to the conflict graph.
 
-The algorithm orders classes according to their degree in the graph and
-then assigns colors so that connected classes receive different colors.
+It first orders classes based on their graph degree and then assigns colors so that connected classes receive different colors.
 
-In this project:
+For this project:
 
 ```text
 One color represents one time-slot group.
 ```
 
-Therefore, two conflicting classes cannot receive the same color.
+Therefore, two classes that conflict cannot have the same color.
 
-The colors are then converted into actual time slots, such as:
+The colors are then mapped to actual time slots:
 
 ```text
 09:00
@@ -185,34 +163,29 @@ The colors are then converted into actual time slots, such as:
 13:00
 ```
 
-This creates a conflict-aware assignment of classes to time slots.
+This produces a time-slot assignment that respects the conflicts represented in the graph.
 
 ---
 
 # 7. Stage 4 - Dynamic Programming Room Optimization
 
-After the graph-based method has assigned time slots, Dynamic Programming
-is used to optimize room allocation.
+Once the time slots have been decided, Dynamic Programming is used to improve the room assignments.
 
-The objective is to minimize the total wasted room capacity while
-maintaining a feasible assignment.
+The goal is to reduce the amount of unused room capacity without breaking any scheduling rules.
 
-For a class assigned to a room:
+The wasted capacity for a class is calculated as:
 
 ```text
 Wasted capacity = Room capacity - Number of students
 ```
 
-Only rooms with sufficient capacity are considered.
-
-A room can only be assigned to one class within the same time slot.
+Only rooms large enough for the class are considered, and a room can only be assigned to one class within the same time slot.
 
 ## DP State
 
-The Dynamic Programming state represents the current scheduling position
-and the rooms that have already been used.
+The Dynamic Programming state keeps track of the current class and the rooms already used in that time slot.
 
-Conceptually, the state can be represented as:
+Conceptually:
 
 ```text
 DP(index, used_rooms)
@@ -220,20 +193,12 @@ DP(index, used_rooms)
 
 where:
 
-- `index` represents the next class requiring a room.
-- `used_rooms` represents the rooms already assigned in the current
-  time slot.
+* `index` is the next class that needs a room.
+* `used_rooms` contains the rooms already assigned.
 
-The value stored by the state represents the minimum possible wasted
-capacity for the remaining assignments.
+The state stores the minimum possible wasted capacity for the remaining assignments.
 
-## Recurrence
-
-For every feasible unused room, the algorithm considers the room's
-wasted capacity and combines it with the best result for the remaining
-classes.
-
-Conceptually:
+The recurrence can be represented as:
 
 ```text
 DP(index, used_rooms)
@@ -244,36 +209,27 @@ min(
 )
 ```
 
-The base case is reached when all classes for the current time slot have
-been assigned:
+When all classes in the current time slot have been assigned:
 
 ```text
 DP(number_of_classes, used_rooms) = 0
 ```
 
-Previously calculated states can be reused instead of solving the same
-subproblem repeatedly.
+Previously solved states are stored and reused, which avoids repeating the same calculations.
 
-## Why Dynamic Programming Was Chosen
+## Why Dynamic Programming?
 
-A straightforward exhaustive approach could repeatedly examine many
-possible room allocation combinations.
+A simple exhaustive approach could check the same room combinations many times. Dynamic Programming avoids some of this repeated work by remembering results from earlier states.
 
-Dynamic Programming reduces this repeated work by storing results for
-already-solved states.
-
-This makes the room-allocation problem more structured and allows the
-algorithm to minimize total wasted capacity while respecting room
-availability.
+This makes the room-allocation problem more organized and allows the program to focus on minimizing wasted capacity.
 
 ---
 
 # 8. Stage 5 - Backtracking
 
-The Backtracking Solver uses recursive search to explore possible class,
-room, and time-slot assignments.
+The Backtracking Solver uses recursive search to try different class, room, and time-slot combinations.
 
-For each class, the algorithm:
+For each class, it:
 
 1. Selects a time slot.
 2. Selects a room.
@@ -281,19 +237,17 @@ For each class, the algorithm:
 4. Checks room conflicts.
 5. Checks professor conflicts.
 6. Checks student group conflicts.
-7. Recursively attempts to schedule the next class.
+7. Moves on to the next class.
 
-If an assignment causes a constraint violation, that branch is rejected.
+If an assignment breaks a rule, that option is rejected.
 
-If a later assignment makes the partial schedule impossible, the
-algorithm backtracks by removing the previous assignment and trying
-another possibility.
+If the solver reaches a later point where the timetable can no longer be completed, it goes back to the previous decision and tries another option.
 
 ## Pruning
 
-The solver prunes invalid branches as soon as a constraint is violated.
+Invalid branches are rejected as early as possible.
 
-Examples include:
+For example:
 
 ```text
 Room too small
@@ -304,63 +258,51 @@ Room already occupied
     ↓
 Reject branch
 
-Professor already teaching at that time
+Professor already teaching
     ↓
 Reject branch
 
-Student group already has a class at that time
+Student group already has a class
     ↓
 Reject branch
 ```
 
-This prevents the algorithm from continuing to explore branches that
-cannot produce a valid schedule.
+This prevents the solver from wasting time exploring schedules that cannot become valid.
 
-Backtracking provides a more exhaustive search than the Greedy approach.
+Compared with Greedy Scheduling, Backtracking provides a more exhaustive search for possible schedules.
 
 ---
 
 # 9. Conflict Report
 
-The graph engine produces a conflict report based on the relationships
-between classes.
+The graph engine also produces a conflict report.
 
-The report identifies conflicts caused by:
+It identifies conflicts caused by:
 
-- Shared professors
-- Shared student groups
+* Shared professors
+* Shared student groups
 
-This provides a transparent explanation of why certain classes cannot
-be placed in the same time slot.
+This makes it easier to understand why certain classes cannot be placed in the same time slot.
 
-The conflict graph is therefore used not only for coloring but also for
-explaining the scheduling constraints.
+The conflict graph is therefore useful not only for coloring but also for explaining the scheduling constraints.
 
 ---
 
 # 10. Algorithm Comparison
 
-The project uses different algorithms because each approach has different
-strengths.
+Each algorithm has a different role in the project.
 
-| Algorithm | Main Purpose | Main Advantage |
-|---|---|---|
-| Greedy | Baseline scheduling | Fast and simple |
-| Conflict Graph | Represent conflicts | Makes constraints explicit |
-| Welsh-Powell | Assign time-slot groups | Conflict-aware coloring |
-| Dynamic Programming | Optimize room allocation | Minimizes wasted capacity |
-| Backtracking | Search for feasible schedules | Can explore alternative assignments |
+| Algorithm           | Main Purpose            | Main Advantage                  |
+| ------------------- | ----------------------- | ------------------------------- |
+| Greedy              | Baseline scheduling     | Fast and simple                 |
+| Conflict Graph      | Represent conflicts     | Makes conflicts clear           |
+| Welsh-Powell        | Assign time-slot groups | Respects graph conflicts        |
+| Dynamic Programming | Optimize rooms          | Reduces wasted capacity         |
+| Backtracking        | Search for schedules    | Can try alternative assignments |
 
-The approaches complement each other rather than performing exactly the
-same task.
+The algorithms complement each other rather than doing exactly the same job.
 
-The Greedy Solver provides a baseline.
-
-The Conflict Graph and Welsh-Powell method focus on time-slot conflicts.
-
-Dynamic Programming focuses on room allocation and wasted capacity.
-
-Backtracking provides a more exhaustive search for feasible schedules.
+Greedy provides the starting point, the Conflict Graph and Welsh-Powell handle time conflicts, Dynamic Programming improves room usage, and Backtracking provides a more thorough search.
 
 ---
 
@@ -376,57 +318,49 @@ T = number of time slots
 
 ## Greedy Solver
 
-The Greedy Solver considers each class, time slot, and room while also
-checking the existing schedule for conflicts.
+The Greedy Solver checks classes, time slots, rooms, and existing schedule conflicts.
 
-A simplified worst-case time complexity is:
+A simplified worst-case complexity is:
 
 ```text
 O(C² × T × R)
 ```
 
-The schedule and unscheduled-class collections require approximately:
+The additional space used for the schedule and unscheduled classes is approximately:
 
 ```text
 O(C)
 ```
 
-additional space.
-
----
-
 ## Conflict Graph
 
-The graph compares pairs of classes to identify conflicts.
+The graph compares pairs of classes to find conflicts.
 
-The worst-case time complexity is approximately:
-
-```text
-O(C²)
-```
-
-The conflict graph can contain an edge between many pairs of classes,
-giving a worst-case space complexity of:
+Worst-case time complexity:
 
 ```text
 O(C²)
 ```
 
----
+Worst-case space complexity:
+
+```text
+O(C²)
+```
+
+because many pairs of classes may have conflicts.
 
 ## Welsh-Powell
 
-Welsh-Powell sorts the vertices and examines graph relationships while
-assigning colors.
+Welsh-Powell sorts the classes and examines their graph relationships while assigning colors.
 
-For the implementation used in this project, the worst-case complexity
-is approximately:
+For this implementation, the approximate worst-case complexity is:
 
 ```text
 O(C²)
 ```
 
-The graph itself requires:
+The graph requires approximately:
 
 ```text
 O(C²)
@@ -434,21 +368,15 @@ O(C²)
 
 space in the worst case.
 
----
-
 ## Dynamic Programming
 
-For a time slot containing `C_s` classes and `R` rooms, the DP state can
-include the current class index and a representation of the rooms already
-used.
-
-The number of possible room-use states can grow approximately with:
+For a time slot containing `C_s` classes and `R` rooms, the possible room-use states can grow with:
 
 ```text
 2^R
 ```
 
-Therefore, an approximate worst-case time complexity is:
+The approximate worst-case time complexity is:
 
 ```text
 O(C_s × R × 2^R)
@@ -460,17 +388,13 @@ with approximately:
 O(C_s × 2^R)
 ```
 
-DP state storage.
+space for the DP states.
 
-The important advantage is that repeated subproblems are stored and
-reused rather than repeatedly recalculated.
-
----
+The main benefit is that previously calculated states are reused.
 
 ## Backtracking
 
-Backtracking has exponential worst-case complexity because it may explore
-many possible assignments.
+Backtracking has exponential worst-case complexity because it can explore many possible assignments.
 
 A simplified upper bound is:
 
@@ -478,76 +402,71 @@ A simplified upper bound is:
 O((T × R)^C)
 ```
 
-because each class may potentially be assigned to one of several
-time-slot and room combinations.
+since each class can potentially be assigned to different time-slot and room combinations.
 
-The recursive call stack requires approximately:
+The recursive call stack uses approximately:
 
 ```text
 O(C)
 ```
 
-space, excluding the stored schedule and input structures.
+space, excluding the schedule and input structures.
 
-Pruning invalid branches reduces the practical search space.
+In practice, pruning removes many invalid branches and reduces the amount of searching required.
 
 ---
 
 # 12. Testing
 
-The project contains unit tests for the main scheduling components.
+The project includes unit tests for the main scheduling components.
 
 The tests cover:
 
-- Greedy scheduling
-- Room capacity
-- Professor conflicts
-- Student group conflicts
-- Conflict graph construction
-- Welsh-Powell coloring
-- Graph-based time-slot assignment
-- Dynamic Programming optimization
-- Room allocation
-- Wasted capacity
-- Impossible room assignments
-- Backtracking
-- Duplicate scheduling prevention
+* Greedy scheduling
+* Room capacity
+* Professor conflicts
+* Student group conflicts
+* Conflict graph construction
+* Welsh-Powell coloring
+* Graph-based time-slot assignment
+* Dynamic Programming optimization
+* Room allocation
+* Wasted capacity
+* Impossible room assignments
+* Backtracking
+* Duplicate scheduling prevention
 
-The complete test suite currently contains:
+The complete test suite contains:
 
 ```text
 25 tests
 ```
 
-The latest test result is:
+The latest result is:
 
 ```text
 Ran 25 tests
-
 OK
-
 Process finished with exit code 0
 ```
 
-All tests pass successfully.
+All 25 tests pass successfully.
 
 ---
 
 # 13. Results
 
-The current input dataset contains:
+The current dataset contains:
 
 ```text
 Total classes: 6
 ```
 
-The scheduling system successfully schedules all six classes with the
-current dataset.
+The scheduling system successfully schedules all six classes with the current input.
 
-The final program reports the number of scheduled and unscheduled classes
-for the Greedy, Dynamic Programming, and Backtracking stages.
+The program reports the number of scheduled and unscheduled classes for the Greedy, Dynamic Programming, and Backtracking stages.
 
-The Dynamic Programming stage also reports total wasted room capacity.
+The Dynamic Programming stage also reports the total wasted room capacity.
 
 The program compares:
 
@@ -557,7 +476,7 @@ DP total wasted capacity
 Capacity improvement
 ```
 
-This provides a quantitative comparison of the room-allocation results.
+This gives a simple way to compare the room allocation produced by the different approaches.
 
 ---
 
@@ -565,15 +484,15 @@ This provides a quantitative comparison of the room-allocation results.
 
 The generated schedules are checked against the main constraints.
 
-The validation process checks for:
+The validation process checks:
 
-- Room capacity violations
-- Room conflicts
-- Professor conflicts
-- Duplicate class assignments
-- Student group conflicts during scheduling
+* Room capacity violations
+* Room conflicts
+* Professor conflicts
+* Duplicate class assignments
+* Student group conflicts
 
-A schedule is considered valid when no validation errors are reported.
+A schedule is considered valid when no validation errors are found.
 
 The current dataset produces a valid schedule.
 
@@ -581,15 +500,13 @@ The current dataset produces a valid schedule.
 
 # 15. Unscheduled Classes
 
-The system supports cases where a class cannot be scheduled.
+The system also handles situations where a class cannot be scheduled.
 
-For example, if a class has more students than the capacity of every
-available room, it cannot be assigned a room.
+For example, if a class has more students than the capacity of every available room, there is no valid room for it.
 
-Such a class is placed in the unscheduled collection and reported by the
-program.
+In that situation, the class is added to the unscheduled collection and reported by the program.
 
-The system can therefore distinguish between:
+The system therefore separates classes into:
 
 ```text
 Scheduled
@@ -601,10 +518,7 @@ and:
 Unscheduled
 ```
 
-classes.
-
-The final program also reports the reason for an unscheduled class when
-such a case occurs.
+When a class cannot be scheduled, the program also reports the reason.
 
 ---
 
@@ -636,77 +550,63 @@ CampusPuzzleAssessment/
 
 # 17. Manual Fix Log
 
-The following issues were identified and corrected during development.
+A few issues were found and corrected during development.
 
-| Issue | Resolution |
-|---|---|
-| Backtracking test imported the wrong module name | Updated the test to import `BacktrackingSolver` from `backtracker.py` |
-| Greedy room selection was originally selecting the smallest fitting room | Changed the baseline to check rooms in their original order and select the first feasible room |
-| Optimizer was initially implemented as a simple room-by-room improvement | Reworked the optimizer as the Dynamic Programming room-optimization component |
-| Optimizer was not connected to the main program | Added the optimizer to `main.py` |
-| Optimizer required additional validation | Added tests for room capacity, room uniqueness, time slots, impossible assignments, and wasted capacity |
-| Project required regression testing | Ran the complete test suite and confirmed that all 25 tests pass |
+| Issue                                                     | Resolution                                                                                         |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Backtracking test imported the wrong module               | Updated the test to use `BacktrackingSolver` from `backtracker.py`                                 |
+| Greedy initially selected the smallest fitting room       | Changed it to check rooms in their original order and select the first feasible room               |
+| Optimizer was initially a simple room-by-room improvement | Reworked it into the Dynamic Programming room-optimization component                               |
+| Optimizer was not connected to the main program           | Added the optimizer to `main.py`                                                                   |
+| Optimizer needed more validation                          | Added tests for capacity, room uniqueness, time slots, impossible assignments, and wasted capacity |
+| Regression testing was required                           | Ran the full test suite and confirmed all 25 tests pass                                            |
+
+These fixes helped keep the different parts of the project connected and working together.
 
 ---
 
 # 18. Design Justification
 
-Each algorithm was selected for a specific role.
+Each algorithm was selected because it solves a different part of the scheduling problem.
 
 ## Greedy
 
-Greedy provides a simple and efficient baseline.
-
-Sorting by student count prioritizes classes with fewer room options.
+Greedy provides a quick and straightforward baseline. Sorting classes by student count gives larger classes priority because they usually have fewer suitable rooms.
 
 ## Conflict Graph
 
-The graph explicitly represents relationships between classes that cannot
-share a time slot.
+The graph gives a clear representation of which classes cannot share a time slot.
 
 ## Welsh-Powell
 
-Welsh-Powell provides a practical graph-coloring method for grouping
-non-conflicting classes into time slots.
+Welsh-Powell provides a practical way to color the graph and group classes into compatible time slots.
 
 ## Dynamic Programming
 
-Dynamic Programming is used after time slots have been fixed because the
-remaining problem is primarily room allocation.
+Dynamic Programming is used after the time slots are decided. At this point, the main problem is choosing rooms efficiently.
 
-The objective is to minimize wasted capacity without violating room
-availability.
+The goal is to reduce wasted room capacity while still respecting room availability.
 
 ## Backtracking
 
-Backtracking provides a more exhaustive search strategy.
-
-It is useful when a simple greedy decision may lead to an undesirable
-partial schedule.
+Backtracking gives the system a more thorough search strategy. It can undo previous choices and try different assignments when an earlier decision leads to a problem.
 
 ---
 
 # 19. Conclusion
 
-This project demonstrates how multiple algorithmic techniques can be
-combined to solve a constrained campus scheduling problem.
+This project shows how different algorithmic techniques can be combined to solve a campus scheduling problem with several constraints.
 
-The Greedy algorithm provides a fast baseline solution.
+The Greedy algorithm provides a fast baseline.
 
-The Conflict Graph models relationships between classes.
+The Conflict Graph represents relationships between classes that cannot happen at the same time.
 
-Welsh-Powell coloring converts those conflicts into conflict-aware
-time-slot assignments.
+Welsh-Powell coloring uses those relationships to create conflict-aware time-slot assignments.
 
-Dynamic Programming optimizes room allocation by minimizing wasted room
-capacity after time slots have been fixed.
+Dynamic Programming improves room allocation by trying to reduce wasted capacity.
 
-Backtracking provides a recursive search strategy capable of exploring
-alternative assignments.
+Backtracking provides a recursive way to explore alternative assignments.
 
-The final project is modular and includes automated tests for the major
-algorithmic components.
+The project is organized into separate modules for the different algorithms and includes automated tests for the major components.
 
-The current implementation successfully schedules all six classes in the
-provided dataset, and the complete test suite passes with 25 successful
-tests.
+For the provided dataset, all six classes are successfully scheduled, and all 25 tests pass.

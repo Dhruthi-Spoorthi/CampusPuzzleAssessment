@@ -16,15 +16,13 @@ class GreedySolver:
         self.classes = classes
         self.rooms = rooms
         self.student_groups = student_groups
+
         self.schedule = []
         self.unscheduled = []
 
     def sort_classes(self):
         """
         Sort classes from largest to smallest.
-
-        Larger classes are considered first because they
-        have fewer room options.
         """
 
         return sorted(
@@ -35,26 +33,25 @@ class GreedySolver:
 
     def room_can_fit(self, course, room):
         """
-        Check whether the room has enough capacity.
+        Check if the room is large enough for the class.
         """
 
         return room.capacity >= course.students
 
     def has_conflict(self, course, time_slot, room):
         """
-        Check room, professor, and student-group conflicts.
+        Check for room, professor, and student group conflicts.
         """
 
         for entry in self.schedule:
 
-            # Room conflict
+            # A room cannot be used by two classes at once.
             if (
                     entry.time_slot == time_slot
                     and entry.room_id == room.room_id
             ):
                 return True
 
-            # Professor conflict
             scheduled_course = next(
                 (
                     c for c in self.classes
@@ -63,6 +60,7 @@ class GreedySolver:
                 None
             )
 
+            # A professor cannot teach two classes at once.
             if (
                     scheduled_course
                     and scheduled_course.professor == course.professor
@@ -70,7 +68,7 @@ class GreedySolver:
             ):
                 return True
 
-        # Student-group conflict
+        # Check for student group conflicts.
         for group_courses in self.student_groups.values():
 
             if course.class_id not in group_courses:
@@ -87,15 +85,6 @@ class GreedySolver:
         return False
 
     def solve(self):
-        """
-        Greedy scheduling algorithm.
-
-        Classes are sorted by student count.
-        For each class, the algorithm checks time slots
-        and rooms in their original order and selects
-        the first feasible combination.
-        """
-
         self.schedule = []
         self.unscheduled = []
 
@@ -105,17 +94,16 @@ class GreedySolver:
 
             placed = False
 
-            # Check time slots in order.
+            # Try each time slot and room in order.
             for time_slot in TIME_SLOTS:
 
-                # Check rooms in their original order.
                 for room in self.rooms:
 
-                    # Room capacity constraint
+                    # Skip rooms that are too small.
                     if not self.room_can_fit(course, room):
                         continue
 
-                    # Conflict constraints
+                    # Skip this choice if there is a conflict.
                     if self.has_conflict(
                             course,
                             time_slot,
@@ -123,9 +111,7 @@ class GreedySolver:
                     ):
                         continue
 
-                    wasted_capacity = (
-                            room.capacity - course.students
-                    )
+                    wasted_capacity = room.capacity - course.students
 
                     entry = ScheduleEntry(
                         course.class_id,
@@ -142,16 +128,13 @@ class GreedySolver:
                 if placed:
                     break
 
+            # No suitable room and time slot was found.
             if not placed:
                 self.unscheduled.append(course)
 
         return self.schedule, self.unscheduled
 
     def validate_schedule(self):
-        """
-        Validate the generated schedule.
-        """
-
         errors = []
 
         class_map = {
@@ -166,14 +149,14 @@ class GreedySolver:
 
         for entry in self.schedule:
 
-            # Check class
+            # Check that the class exists.
             if entry.class_id not in class_map:
                 errors.append(
                     f"Unknown class: {entry.class_id}"
                 )
                 continue
 
-            # Check room
+            # Check that the room exists.
             if entry.room_id not in room_map:
                 errors.append(
                     f"Unknown room: {entry.room_id}"
@@ -183,14 +166,14 @@ class GreedySolver:
             course = class_map[entry.class_id]
             room = room_map[entry.room_id]
 
-            # Capacity validation
+            # Make sure the class fits in the room.
             if course.students > room.capacity:
                 errors.append(
                     f"Class {course.class_id} "
                     f"exceeds room capacity"
                 )
 
-            # Check conflicts against other entries
+            # Check for professor conflicts.
             for other in self.schedule:
 
                 if other is entry:
@@ -205,7 +188,6 @@ class GreedySolver:
                         other.class_id
                     )
 
-                    # Professor conflict
                     if (
                             other_course
                             and other_course.professor
@@ -217,7 +199,7 @@ class GreedySolver:
                             f"at {entry.time_slot}"
                         )
 
-            # Room conflict
+            # Check for room conflicts.
             for other in self.schedule:
 
                 if other is entry:
@@ -234,4 +216,5 @@ class GreedySolver:
                         f"at {entry.time_slot}"
                     )
 
+        # Remove duplicate error messages.
         return list(dict.fromkeys(errors))

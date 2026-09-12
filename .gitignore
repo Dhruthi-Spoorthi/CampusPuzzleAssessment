@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.py[cod]
+
+.idea/workspace.xml
+.DS_Store
+
+Archive.zip
