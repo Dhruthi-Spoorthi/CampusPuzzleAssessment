@@ -4,7 +4,7 @@
 
 GitHub repository:
 
-PASTE-YOUR-GITHUB-REPOSITORY-LINK-HERE
+ https://github.com/Dhruthi-Spoorthi/CampusPuzzleAssessment
 
 ---
 
