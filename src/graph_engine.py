@@ -12,7 +12,6 @@ class ConflictGraph:
         self.classes = classes
         self.student_groups = student_groups
 
-        # Each class starts with an empty set of conflicts.
         self.graph = {
             course.class_id: set()
             for course in classes
@@ -22,11 +21,7 @@ class ConflictGraph:
         self.time_slots = {}
 
     def build_graph(self):
-        """
-        Create the conflict graph for all classes.
-        """
 
-        # Check for classes taught by the same professor.
         for i in range(len(self.classes)):
 
             course_a = self.classes[i]
@@ -43,7 +38,6 @@ class ConflictGraph:
                         course_a.class_id
                     )
 
-        # Check classes that belong to the same student group.
         for group_courses in self.student_groups.values():
 
             for i in range(len(group_courses)):
@@ -54,7 +48,6 @@ class ConflictGraph:
 
                     class_b = group_courses[j]
 
-                    # Make sure both classes are in the graph.
                     if (
                             class_a in self.graph
                             and class_b in self.graph
@@ -65,15 +58,10 @@ class ConflictGraph:
         return self.graph
 
     def welsh_powell(self):
-        """
-        Colour the conflict graph using Welsh-Powell.
-        """
 
-        # Build the graph first if it has not been built yet.
         if not any(self.graph.values()):
             self.build_graph()
 
-        # Classes with more conflicts are handled first.
         ordered_classes = sorted(
             self.graph,
             key=lambda class_id: len(self.graph[class_id]),
@@ -92,8 +80,6 @@ class ConflictGraph:
 
             color = 0
 
-            # Find the first colour that is not being used
-            # by any of this class's neighbours.
             while color in used_colors:
                 color += 1
 
@@ -102,9 +88,6 @@ class ConflictGraph:
         return self.colors
 
     def assign_time_slots(self):
-        """
-        Turn the colours into actual time slots.
-        """
 
         if not self.colors:
             self.welsh_powell()
@@ -116,23 +99,18 @@ class ConflictGraph:
             if color < len(self.TIME_SLOTS):
                 self.time_slots[class_id] = self.TIME_SLOTS[color]
             else:
-                # There are more colours than available slots.
                 self.time_slots[class_id] = None
 
         return self.time_slots
 
     def get_conflicts(self):
-        """
-        Return each conflict as a pair of class IDs.
-        """
-
         conflicts = []
 
         for class_id in self.graph:
 
             for other_id in self.graph[class_id]:
 
-                # Each pair only needs to be added once.
+
                 if class_id < other_id:
                     conflicts.append(
                         (class_id, other_id)
@@ -141,9 +119,6 @@ class ConflictGraph:
         return sorted(conflicts)
 
     def get_conflict_report(self):
-        """
-        Create a simple list showing the class conflicts.
-        """
 
         report = []
 

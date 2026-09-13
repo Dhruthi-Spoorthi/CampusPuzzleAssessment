@@ -2,13 +2,6 @@ from models import ScheduleEntry
 
 
 class Optimizer:
-    """
-    Dynamic Programming optimizer.
-
-    The time slots are fixed before this optimizer runs.
-    The optimizer assigns rooms to classes within each
-    time slot while minimizing total wasted capacity.
-    """
 
     def __init__(self, classes, rooms, time_slots):
         self.classes = classes
@@ -23,9 +16,6 @@ class Optimizer:
         self.optimized_schedule = []
 
     def calculate_total_wasted_capacity(self, schedule=None):
-        """
-        Calculate the total unused room capacity.
-        """
 
         if schedule is None:
             schedule = self.optimized_schedule
@@ -38,9 +28,6 @@ class Optimizer:
         return total
 
     def get_classes_for_time_slot(self, time_slot):
-        """
-        Return all classes assigned to a particular time slot.
-        """
 
         result = []
 
@@ -54,36 +41,10 @@ class Optimizer:
         return result
 
     def dynamic_programming(self, courses):
-        """
-        Use Dynamic Programming to find the room assignment
-        with minimum total wasted capacity.
-
-        DP state:
-
-            (index, used_rooms)
-
-        index:
-            The next class that needs a room.
-
-        used_rooms:
-            A tuple containing room IDs that are already used.
-
-        DP value:
-
-            Minimum total wasted capacity for the remaining
-            classes.
-        """
 
         memo = {}
 
         def dp(index, used_rooms):
-            """
-            Return:
-
-                (minimum_waste, room_assignment)
-
-            for the remaining classes.
-            """
 
             if index == len(courses):
                 return 0, []
@@ -100,12 +61,9 @@ class Optimizer:
 
             for room in self.rooms:
 
-                # A room cannot be used twice in the same
-                # time slot.
                 if room.room_id in used_rooms:
                     continue
 
-                # The room must have enough capacity.
                 if room.capacity < course.students:
                     continue
 
@@ -153,16 +111,9 @@ class Optimizer:
         return dp(0, tuple())
 
     def optimize(self):
-        """
-        Assign rooms to all fixed time slots using
-        Dynamic Programming.
-
-        The time slots come from the conflict graph.
-        """
 
         self.optimized_schedule = []
 
-        # Process each time slot independently.
         unique_time_slots = []
 
         for slot in self.time_slots.values():
@@ -178,8 +129,6 @@ class Optimizer:
             if not courses:
                 continue
 
-            # Larger classes first makes the DP easier to
-            # interpret and helps expose infeasible cases.
             courses = sorted(
                 courses,
                 key=lambda course: course.students,
@@ -190,9 +139,6 @@ class Optimizer:
                 self.dynamic_programming(courses)
             )
 
-            # If no feasible room assignment exists,
-            # leave these classes out of the optimized
-            # schedule rather than creating an invalid entry.
             if room_assignment is None:
                 continue
 

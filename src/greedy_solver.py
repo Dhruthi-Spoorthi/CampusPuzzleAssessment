@@ -21,9 +21,6 @@ class GreedySolver:
         self.unscheduled = []
 
     def sort_classes(self):
-        """
-        Sort classes from largest to smallest.
-        """
 
         return sorted(
             self.classes,
@@ -32,20 +29,13 @@ class GreedySolver:
         )
 
     def room_can_fit(self, course, room):
-        """
-        Check if the room is large enough for the class.
-        """
 
         return room.capacity >= course.students
 
     def has_conflict(self, course, time_slot, room):
-        """
-        Check for room, professor, and student group conflicts.
-        """
 
         for entry in self.schedule:
 
-            # A room cannot be used by two classes at once.
             if (
                     entry.time_slot == time_slot
                     and entry.room_id == room.room_id
@@ -60,7 +50,6 @@ class GreedySolver:
                 None
             )
 
-            # A professor cannot teach two classes at once.
             if (
                     scheduled_course
                     and scheduled_course.professor == course.professor
@@ -68,7 +57,6 @@ class GreedySolver:
             ):
                 return True
 
-        # Check for student group conflicts.
         for group_courses in self.student_groups.values():
 
             if course.class_id not in group_courses:
@@ -94,16 +82,13 @@ class GreedySolver:
 
             placed = False
 
-            # Try each time slot and room in order.
             for time_slot in TIME_SLOTS:
 
                 for room in self.rooms:
 
-                    # Skip rooms that are too small.
                     if not self.room_can_fit(course, room):
                         continue
 
-                    # Skip this choice if there is a conflict.
                     if self.has_conflict(
                             course,
                             time_slot,
@@ -128,7 +113,6 @@ class GreedySolver:
                 if placed:
                     break
 
-            # No suitable room and time slot was found.
             if not placed:
                 self.unscheduled.append(course)
 
@@ -149,14 +133,12 @@ class GreedySolver:
 
         for entry in self.schedule:
 
-            # Check that the class exists.
             if entry.class_id not in class_map:
                 errors.append(
                     f"Unknown class: {entry.class_id}"
                 )
                 continue
 
-            # Check that the room exists.
             if entry.room_id not in room_map:
                 errors.append(
                     f"Unknown room: {entry.room_id}"
@@ -166,14 +148,12 @@ class GreedySolver:
             course = class_map[entry.class_id]
             room = room_map[entry.room_id]
 
-            # Make sure the class fits in the room.
             if course.students > room.capacity:
                 errors.append(
                     f"Class {course.class_id} "
                     f"exceeds room capacity"
                 )
 
-            # Check for professor conflicts.
             for other in self.schedule:
 
                 if other is entry:
@@ -199,7 +179,6 @@ class GreedySolver:
                             f"at {entry.time_slot}"
                         )
 
-            # Check for room conflicts.
             for other in self.schedule:
 
                 if other is entry:
@@ -215,6 +194,4 @@ class GreedySolver:
                         f"{entry.room_id} "
                         f"at {entry.time_slot}"
                     )
-
-        # Remove duplicate error messages.
         return list(dict.fromkeys(errors))

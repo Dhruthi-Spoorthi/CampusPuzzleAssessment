@@ -43,10 +43,7 @@ def load_data():
 
 
 def get_unscheduled_reason(course, rooms):
-    """
-    Provide a simple explanation for why a class
-    could not be scheduled.
-    """
+
 
     if not rooms:
         return "no rooms are available"
@@ -71,10 +68,7 @@ def print_unscheduled_classes(
         unscheduled,
         rooms
 ):
-    """
-    Print unscheduled classes together with
-    an explanation.
-    """
+
 
     if not unscheduled:
         print("None")
@@ -95,10 +89,6 @@ def print_unscheduled_classes(
 def main():
 
     classes, rooms, student_groups = load_data()
-
-    # ==========================================
-    # STAGE 1 - GREEDY BASELINE
-    # ==========================================
 
     print("=== GREEDY BASELINE ===")
 
@@ -136,9 +126,6 @@ def main():
         for error in greedy_errors:
             print(error)
 
-    # ==========================================
-    # STAGE 2 - CONFLICT GRAPH
-    # ==========================================
 
     print("\n=== CONFLICT GRAPH ===")
 
@@ -163,10 +150,6 @@ def main():
                 f"{class_id}: No conflicts"
             )
 
-    # ==========================================
-    # STAGE 3 - WELSH-POWELL COLORING
-    # ==========================================
-
     print("\n=== WELSH-POWELL COLORING ===")
 
     colors = graph.welsh_powell()
@@ -175,10 +158,6 @@ def main():
         print(
             f"{class_id} -> Color {color}"
         )
-
-    # ==========================================
-    # STAGE 4 - GRAPH-BASED TIME SLOTS
-    # ==========================================
 
     print("\n=== GRAPH-BASED TIME SLOTS ===")
 
@@ -190,10 +169,6 @@ def main():
             f"{time_slots[class_id]}"
         )
 
-    # ==========================================
-    # STAGE 5 - CONFLICT REPORT
-    # ==========================================
-
     print("\n=== CONFLICT REPORT ===")
 
     conflict_report = graph.get_conflict_report()
@@ -203,10 +178,6 @@ def main():
     else:
         for conflict in conflict_report:
             print(conflict)
-
-    # ==========================================
-    # STAGE 6 - DYNAMIC PROGRAMMING
-    # ==========================================
 
     print("\n=== DYNAMIC PROGRAMMING OPTIMIZATION ===")
 
@@ -265,9 +236,6 @@ def main():
         rooms
     )
 
-    # ==========================================
-    # STAGE 7 - BACKTRACKING SOLVER
-    # ==========================================
 
     print("\n=== BACKTRACKING SOLVER ===")
 
@@ -304,10 +272,6 @@ def main():
     else:
         for error in backtracking_errors:
             print(error)
-
-    # ==========================================
-    # FINAL SUMMARY
-    # ==========================================
 
     print("\n=== FINAL SCHEDULE SUMMARY ===")
 

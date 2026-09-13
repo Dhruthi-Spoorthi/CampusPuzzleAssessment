@@ -2,8 +2,6 @@ import os
 import sys
 import unittest
 
-
-# Add the src folder to Python's module search path
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 
 if SRC_DIR not in sys.path:

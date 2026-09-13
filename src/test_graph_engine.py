@@ -49,7 +49,6 @@ class TestConflictGraph(unittest.TestCase):
 
     def test_professor_conflict(self):
 
-        # CS101 and CS102 have the same professor P1
         self.assertIn(
             "CS102",
             self.graph.graph["CS101"]
@@ -62,13 +61,11 @@ class TestConflictGraph(unittest.TestCase):
 
     def test_student_group_conflict(self):
 
-        # CS101 and MATH101 share GroupA
         self.assertIn(
             "MATH101",
             self.graph.graph["CS101"]
         )
 
-        # MATH101 and HIST101 share GroupC
         self.assertIn(
             "HIST101",
             self.graph.graph["MATH101"]
@@ -76,8 +73,6 @@ class TestConflictGraph(unittest.TestCase):
 
     def test_no_false_conflict(self):
 
-        # CS102 and HIST101 share neither
-        # professor nor student group
         self.assertNotIn(
             "HIST101",
             self.graph.graph["CS102"]
@@ -87,14 +82,11 @@ class TestConflictGraph(unittest.TestCase):
 
         colors = self.graph.welsh_powell()
 
-        # Every class must receive a color
         self.assertEqual(
             len(colors),
             len(self.classes)
         )
 
-        # Conflicting classes must have
-        # different colors
         for class_id, neighbors in self.graph.graph.items():
 
             for neighbor in neighbors:
@@ -108,7 +100,6 @@ class TestConflictGraph(unittest.TestCase):
 
         time_slots = self.graph.assign_time_slots()
 
-        # Every class should receive a time slot
         self.assertEqual(
             len(time_slots),
             len(self.classes)
@@ -127,13 +118,11 @@ class TestConflictGraph(unittest.TestCase):
 
         report = self.graph.get_conflict_report()
 
-        # There should be conflicts in our dataset
         self.assertGreater(
             len(report),
             0
         )
 
-        # Check that known conflicts appear
         combined_report = " ".join(report)
 
         self.assertIn(

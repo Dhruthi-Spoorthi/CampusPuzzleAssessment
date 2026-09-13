@@ -2,7 +2,6 @@ import os
 import sys
 import unittest
 
-# Make the src folder available for imports
 sys.path.insert(
     0,
     os.path.dirname(

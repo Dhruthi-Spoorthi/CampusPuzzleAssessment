@@ -19,7 +19,6 @@ class BacktrackingSolver:
             "13:00"
         ]
 
-        # Keep track of the best schedule we find.
         self.best_schedule = []
 
     def get_course(self, class_id):
@@ -32,7 +31,6 @@ class BacktrackingSolver:
     def has_conflict(self, course, time_slot, room):
         for entry in self.schedule:
 
-            # Check if the room is already being used.
             if (
                     entry.time_slot == time_slot
                     and entry.room_id == room.room_id
@@ -41,8 +39,6 @@ class BacktrackingSolver:
 
             other_course = self.get_course(entry.class_id)
 
-            # Two classes cannot have the same professor
-            # at the same time.
             if (
                     other_course
                     and other_course.professor == course.professor
@@ -50,8 +46,6 @@ class BacktrackingSolver:
             ):
                 return True
 
-        # Check whether students in the same group
-        # would have two classes at the same time.
         for group_courses in self.student_groups.values():
 
             if course.class_id not in group_courses:
@@ -76,22 +70,18 @@ class BacktrackingSolver:
         # than the one we already have.
         self.update_best_schedule()
 
-        # We have gone through all the classes.
         if index == len(courses):
             return True
 
         course = courses[index]
 
-        # Try each time slot and room for this class.
         for time_slot in self.time_slots:
 
             for room in self.rooms:
 
-                # The room must be large enough for the class.
                 if room.capacity < course.students:
                     continue
 
-                # Skip this choice if it causes a conflict.
                 if self.has_conflict(course, time_slot, room):
                     continue
 
@@ -106,16 +96,11 @@ class BacktrackingSolver:
 
                 self.schedule.append(entry)
 
-                # Try scheduling the next class.
                 if self.backtrack(index + 1, courses):
                     return True
 
-                # This choice did not work, so remove it
-                # and try another room or time slot.
                 self.schedule.pop()
 
-        # If this class cannot be scheduled, move on to
-        # the next one and keep the best schedule found.
         if self.backtrack(index + 1, courses):
             return True
 
@@ -126,8 +111,6 @@ class BacktrackingSolver:
         self.unscheduled = []
         self.best_schedule = []
 
-        # Schedule larger classes first so that it is
-        # easier to find suitable rooms for them.
         courses = sorted(
             self.classes,
             key=lambda course: course.students,
@@ -136,7 +119,6 @@ class BacktrackingSolver:
 
         self.backtrack(0, courses)
 
-        # Use the best schedule found by the search.
         self.schedule = list(self.best_schedule)
 
         scheduled_ids = {
@@ -169,14 +151,12 @@ class BacktrackingSolver:
 
         for entry in self.schedule:
 
-            # Check that the class exists.
             if entry.class_id not in class_ids:
                 errors.append(
                     f"Unknown class: {entry.class_id}"
                 )
                 continue
 
-            # Check that the room exists.
             if entry.room_id not in room_map:
                 errors.append(
                     f"Unknown room: {entry.room_id}"
@@ -186,7 +166,6 @@ class BacktrackingSolver:
             course = self.get_course(entry.class_id)
             room = room_map[entry.room_id]
 
-            # Make sure the class fits in the room.
             if course.students > room.capacity:
                 errors.append(
                     f"Class {course.class_id} "
@@ -195,14 +174,11 @@ class BacktrackingSolver:
 
             scheduled_ids.append(entry.class_id)
 
-        # A class should only appear once in the schedule.
         if len(scheduled_ids) != len(set(scheduled_ids)):
             errors.append(
                 "A class has been scheduled more than once."
             )
 
-        # Compare every pair of classes that are
-        # scheduled at the same time.
         for i in range(len(self.schedule)):
 
             for j in range(i + 1, len(self.schedule)):
@@ -213,8 +189,6 @@ class BacktrackingSolver:
                 if first.time_slot != second.time_slot:
                     continue
 
-                # Two classes cannot use the same room
-                # at the same time.
                 if first.room_id == second.room_id:
                     errors.append(
                         f"Room conflict: "
@@ -228,8 +202,6 @@ class BacktrackingSolver:
                 if not first_course or not second_course:
                     continue
 
-                # Two classes cannot use the same professor
-                # at the same time.
                 if first_course.professor == second_course.professor:
                     errors.append(
                         f"Professor conflict: "
@@ -237,8 +209,6 @@ class BacktrackingSolver:
                         f"at {first.time_slot}"
                     )
 
-                # Check if both classes belong to the same
-                # student group.
                 for group_courses in self.student_groups.values():
 
                     if (
@@ -252,5 +222,4 @@ class BacktrackingSolver:
                             f"at {first.time_slot}"
                         )
 
-        # Remove duplicate error messages.
         return list(dict.fromkeys(errors))
